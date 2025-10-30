@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3579/3579913.png" sizes="32x32">
+    <title>Vida en Perspectiva</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .info-panel {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            max-width: 800px;
+            line-height: 1.5;
+        }
+		.dob-input-container {
+            margin-bottom: 20px;
+        }
+        .dob-input-container label {
+            margin-right: 10px;
+        }
+        .dob-input-container input {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #e0e0e0;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(52, 1fr);
+            gap: 2px;
+            max-width: 90vw;
+            border: 2px solid #555;
+            padding: 10px;
+            background-color: #1e1e1e;
+        }
+        .week-square {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.5s ease;
+        }
+        .week-lived {
+            background-color: #3f72af; /* A blueish color for lived weeks */
+        }
+        .week-slept {
+            background-color: #0b2f51; /* A darker blue for slept weeks */
+        }
+        .week-remaining {
+            background-color: #444; /* Dark gray for future weeks */
+        }
+        .key {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 20px;
+        }
+        .key-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .key-item .box {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Vida en Perspectiva</h1>
+    <div class="info-panel">
+        <p>Este gráfico representa un tiempo de vida de 80 años, cada cuadrado simboliza una semana. Los cuadrados de azul claro muestran las semanas vividas.
+		<br><br>
+		Los cuadrados grises muestran las semanas que te faltan por vivir´, mientras que los cuadrados de azul oscuro, tiempo en semanas en las cuales pasarás durmiendo o haciendo actividades básicas como por ejemplo, higiene personal.
+		<br><br>
+		Estos cuadros de azul oscuro son sencillamente un tercio de las semanas que te quedan por vivir.</p><hr>
+        <p id="stats"></p>
+    </div>
+	
+	<div class="dob-input-container">
+        <label for="dob-input">Enter your Date of Birth:</label>
+        <input type="date" id="dob-input" value="1997-03-10">
+    </div>
+
+    <div class="grid-container" id="lifeGrid"></div>
+
+    <div class="key">
+        <div class="key-item">
+            <div class="box week-lived"></div>
+            <span>Semanas Vividas</span>
+        </div>
+        <div class="key-item">
+            <div class="box week-slept"></div>
+            <span>Semanas que dormirás</span>
+        </div>
+        <div class="key-item">
+            <div class="box week-remaining"></div>
+            <span>Semanas restantes</span>
+        </div>
+    </div>
+
+    <script>
+		const dobInput = document.getElementById('dob-input');
+        const gridContainer = document.getElementById('lifeGrid');
+        const statsPanel = document.getElementById('stats');
+		
+        const calculateAndRenderGrid = (dob) =>
+		{
+            const lifespanYears = 80;
+            const weeksPerYear = 52;
+            const totalWeeks = lifespanYears * weeksPerYear;
+            const today = new Date();
+            const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
+			
+			if (isNaN(dob.getTime()))
+			{
+                statsPanel.textContent = 'Por favor, introduce una fecha de nacimiento correcta.';
+                gridContainer.innerHTML = '';
+                return;
+            }
+			
+			const weeksLived = Math.floor((today - dob) / millisecondsPerWeek);
+			const timeSleeping = Math.ceil((totalWeeks - weeksLived) / 3);
+			const timeRemainingSleeping = totalWeeks - timeSleeping;
+			
+			gridContainer.innerHTML = '';
+
+            for (let i = 0; i < totalWeeks; i++)
+			{
+                const square = document.createElement('div');
+                square.classList.add('week-square');
+
+                if (i < weeksLived)
+				{
+                    square.classList.add('week-lived');
+                }
+				else if (i >= timeRemainingSleeping)
+				{
+					square.classList.add('week-slept');
+				}
+				else
+				{
+                    square.classList.add('week-remaining');
+                }
+                gridContainer.appendChild(square);
+            }
+
+            const statsPanel = document.getElementById('stats');
+            const weeksRemaining = totalWeeks - weeksLived - timeSleeping;
+            statsPanel.innerHTML = `Has vivido **${weeksLived} semanas** de un total de **${totalWeeks} semanas**. Tienes **${weeksRemaining} semanas** restantes.`;
+        }
+		
+		calculateAndRenderGrid(new Date(dobInput.value));
+
+        // Update grid on date change
+        dobInput.addEventListener('change', (event) => {
+            const newDob = new Date(event.target.value);
+            calculateAndRenderGrid(newDob);
+        });
+    </script>
+</body>
+</html>
