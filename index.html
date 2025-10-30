@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+	<link rel="icon" href="https://www.pngfind.com/pngs/m/5-58825_telephone-phone-icon-phone-symbol-png-yellow-transparent.png" sizes="32x32">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Turnos de Llamada</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0d1117; overflow-x: hidden; }
+        
+        .roller-container {
+            height: 200px; /* Visible height */
+            perspective: 1000px;
+            overflow: hidden;
+            border-radius: 0.75rem;
+            position: relative;
+            background-color: #161b22;
+        }
+
+        .roller {
+            height: 100%;
+            width: 100%;
+            transition: transform 0.2s ease-out; /* Smooth snapping transition */
+            position: absolute;
+            will-change: transform;
+        }
+        
+        .roller-item {
+            height: 40px; /* Fixed item height */
+            line-height: 40px;
+            text-align: center;
+            color: #8b949e;
+            font-size: 1rem;
+            opacity: 0.5;
+            transition: opacity 0.1s, color 0.1s, font-size 0.1s;
+        }
+
+        .focus-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 40px;
+            pointer-events: none;
+            /* Positioned in the center of 200px container: (200 / 2) - (40 / 2) = 80px from top */
+            top: 80px; 
+            /* Solid background to highlight the focused row, like iOS */
+            background-color: #2a3440; 
+            z-index: 10;
+            border-radius: 4px;
+        }
+
+        /* Styles for the centered/focused item */
+        .roller-item.focused {
+            opacity: 1;
+            color: #4dc0b5; /* Teal/Cyan highlight color for contrast */
+            font-size: 1.6rem; 
+            font-weight: 800; /* Bold to stand out */
+        }
+		
+		footer {
+			color: #8b949e;
+			border-radius: 6px;
+			background: rgba(1,1,1,.2);
+			text-align: center;
+			margin-top: 1rem;
+			padding: .5rem;
+		}
+		
+		a {
+			font-weight: Bold;
+			color: #4dc0b5 !important;
+		}
+    </style>
+</head>
+<body>
+
+    <div class="container mx-auto max-w-2xl py-8 px-4">
+        <h1 class="text-4xl font-bold text-center mb-10 text-white">
+            ⏰ Simulador de Ciclo de Llamada
+        </h1>
+
+        <!-- Roulette Section -->
+        <div class="flex space-x-4 mb-10 bg-[#0d1117] p-4 rounded-xl shadow-2xl relative">
+            
+            <!-- Focus Indicator Line (as background highlight) <div class="focus-line"></div> -->
+            
+
+            <!-- Day Roulette -->
+            <div id="day-roulette-container" class="roller-container w-1/2">
+                <div id="day-roller" class="roller">
+                    <!-- Day Items Injected Here -->
+                </div>
+            </div>
+
+            <!-- Hour Roulette -->
+            <div id="hour-roulette-container" class="roller-container w-1/2">
+                <div id="hour-roller" class="roller">
+                    <!-- Hour Items Injected Here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected Output -->
+        <div class="bg-blue-900/30 p-6 rounded-xl text-white text-center shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-2 text-blue-300">Turno de Llamada Seleccionado:</h2>
+            <p id="selected-output" class="text-4xl font-extrabold"></p>
+        </div>
+
+        <!-- Current Date and Time -->
+        <div class="text-center text-gray-400">
+            <p class="text-xl font-medium">Fecha y Hora Actual (local):</p>
+            <p id="current-datetime" class="text-3xl font-mono mt-1"></p>
+        </div>
+		
+		<footer>
+			<p>Revisa cuántas semanas llevas viviendo haciendo <a href="./life-in-perspective.html">click aquí.</a></p>
+		</footer>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const ITEM_HEIGHT = 40; // Height of each item in pixels
+        const ROLLER_HEIGHT = 200; // Visible height of the container
+        
+        // Define the repeating cycle of call times (4-day cycle)
+        const CALL_TIME_CYCLE = ['09:00', '14:00', '07:00', '12:00'];
+
+        // Current date reference for calculating the range 
+        // NOTE: Using a fixed date for reliable local testing, otherwise use new Date()
+        const currentDate = new Date(); 
+        
+        // Calculate start date: 1st day of the month one month ago
+        const START_DATE = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1); 
+
+        // --- Data Generation ---
+
+        function getDatesAndTimes() {
+            const dates = [];
+            let d = new Date(START_DATE);
+            
+            // End date: Last day of the month 7 months in the future
+            const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 7, 0); 
+
+            let dayIndex = 0;
+            while (d <= endDate) {
+                const year = d.getFullYear();
+                const month = d.getMonth() + 1;
+                const day = d.getDate();
+
+                // Calculate call time based on the cycle
+                const cycleIndex = dayIndex % CALL_TIME_CYCLE.length;
+                const callTime = CALL_TIME_CYCLE[cycleIndex];
+                
+                dates.push({
+                    date: new Date(d),
+                    // Format: 24 oct
+                    dayLabel: `${day} ${d.toLocaleDateString('es-ES', { month: 'short' })}`,
+                    callTime: callTime,
+                    id: `${year}-${month}-${day}`
+                });
+
+                d.setDate(d.getDate() + 1);
+                dayIndex++;
+            }
+            return dates;
+        }
+
+        const ALL_DATES_AND_TIMES = getDatesAndTimes();
+
+        // --- Roller Implementation ---
+
+        class Roller {
+            constructor(containerId, rollerId, items) {
+                this.container = document.getElementById(containerId);
+                this.roller = document.getElementById(rollerId);
+                this.items = items;
+                this.itemCount = items.length;
+                this.itemHeight = ITEM_HEIGHT;
+                this.containerHeight = ROLLER_HEIGHT;
+                this.position = 0; // Current Y translation in pixels
+                this.isDragging = false;
+                this.startY = 0;
+                this.lastY = 0;
+                this.velocity = 0;
+                this.rafId = null;
+
+                this.render();
+                this.addListeners();
+            }
+
+            render() {
+                this.roller.innerHTML = this.items.map((item, index) => `
+                    <div class="roller-item" data-index="${index}">
+                        ${this.roller.id === 'day-roller' ? item.dayLabel : item.callTime}
+                    </div>
+                `).join('');
+            }
+
+            // --- Event Handlers ---
+
+            startDrag = (e) => {
+                // Only allow one roller to start the drag, but flag both
+                this.isDragging = true;
+                
+                // Disable snapping transitions globally while dragging
+                dayRoller.roller.style.transition = 'none';
+                hourRoller.roller.style.transition = 'none';
+                
+                this.startY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+                this.lastY = this.startY;
+                this.velocity = 0;
+                e.preventDefault();
+                
+                // Add global listeners for mouse up/move
+                if (e.type === 'mousedown') {
+                    document.addEventListener('mousemove', globalDrag);
+                    document.addEventListener('mouseup', globalEndDrag);
+                }
+            }
+
+            // Public method to set position (used by globalDrag)
+            setPosition(deltaY) {
+                this.position += deltaY;
+
+                // Bounds check 
+                const maxPos = 0;
+                const minPos = -((this.itemCount - 1) * this.itemHeight);
+                this.position = Math.max(minPos, Math.min(maxPos, this.position));
+
+                this.roller.style.transform = `translateY(${this.position}px)`;
+            }
+
+            // --- Snapping and Focus ---
+
+            snapToNearest() {
+                if (this.rafId) {
+                    cancelAnimationFrame(this.rafId);
+                    this.rafId = null;
+                }
+                
+                // Calculate target index 
+                let targetIndex = Math.round(this.position / this.itemHeight);
+                
+                // Target position (needs to be negative or zero)
+                const snappedPosition = targetIndex * this.itemHeight;
+                
+                // Apply the snap with a smooth transition
+                this.roller.style.transition = 'transform 0.15s ease-out';
+                this.position = snappedPosition;
+                this.roller.style.transform = `translateY(${this.position}px)`;
+                
+                // Final update after snap
+                setTimeout(() => this.updateFocus(false), 150);
+            }
+
+            updateFocus(isDragging) {
+                // Calculate the index of the item currently in the center
+                const centeredIndex = -Math.round(this.position / this.itemHeight);
+                
+                this.roller.querySelectorAll('.roller-item').forEach((item, index) => {
+                    const isFocused = index === centeredIndex;
+                    item.classList.toggle('focused', isFocused);
+                });
+                
+                if (!isDragging) {
+                    this.selectedIndex = centeredIndex;
+                    globalUpdate();
+                }
+            }
+
+            addListeners() {
+                // Mouse listeners
+                this.roller.addEventListener('mousedown', this.startDrag);
+                // Touch listeners
+                this.roller.addEventListener('touchstart', this.startDrag);
+                this.roller.addEventListener('touchmove', globalDrag);
+                this.roller.addEventListener('touchend', globalEndDrag);
+            }
+            
+            // Public method to scroll to a specific index (used for initializing to current date)
+            scrollToIndex(index) {
+                this.position = -index * this.itemHeight;
+                this.roller.style.transform = `translateY(${this.position}px)`;
+                this.updateFocus(false);
+            }
+        }
+
+        // --- Initialization and Global Logic ---
+
+        let dayRoller, hourRoller;
+        const selectedOutput = document.getElementById('selected-output');
+
+        // Global variable to hold the roller that initiated the drag (used to calculate deltaY)
+        let activeRollerSource = null;
+
+        function globalUpdate() {
+            if (!dayRoller || !hourRoller) return;
+            
+            const selectedDateIndex = dayRoller.selectedIndex;
+            const selectedData = ALL_DATES_AND_TIMES[selectedDateIndex];
+            
+            const dateStr = selectedData.date.toLocaleDateString('es-ES', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+            
+            selectedOutput.innerHTML = `
+                <span class="text-3xl block">${dateStr}</span>
+                <span class="text-6xl font-black text-[#4dc0b5] block">${selectedData.callTime}</span>
+            `;
+        }
+        
+        // Synchronized Drag Logic
+        const globalDrag = (e) => {
+            // Determine the roller that initiated the drag
+            if (dayRoller.isDragging && !activeRollerSource) activeRollerSource = dayRoller;
+            if (hourRoller.isDragging && !activeRollerSource) activeRollerSource = hourRoller;
+            if (!activeRollerSource) return;
+
+            const currentY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+            const deltaY = currentY - activeRollerSource.lastY;
+            
+            // Apply position change to BOTH rollers
+            dayRoller.setPosition(deltaY);
+            hourRoller.setPosition(deltaY);
+            
+            activeRollerSource.velocity = deltaY;
+            activeRollerSource.lastY = currentY;
+
+            // Update focus display on one roller (syncs the other)
+            dayRoller.updateFocus(true);
+        }
+        
+        // Synchronized End Drag Logic
+        const globalEndDrag = (e) => {
+            if (!activeRollerSource) return;
+
+            // Remove global listeners
+            if (e.type === 'mouseup') {
+                document.removeEventListener('mousemove', globalDrag);
+                document.removeEventListener('mouseup', globalEndDrag);
+            }
+            
+            // Clear dragging flags
+            const finalVelocity = activeRollerSource.velocity;
+            dayRoller.isDragging = false;
+            hourRoller.isDragging = false;
+            activeRollerSource = null;
+
+            if (Math.abs(finalVelocity) > 1) {
+                // Apply inertia to one roller (which updates the position for both)
+                startInertia(dayRoller, finalVelocity);
+            } else {
+                // Snap both rollers simultaneously (by snapping the master roller)
+                dayRoller.snapToNearest();
+                hourRoller.snapToNearest();
+            }
+        }
+        
+        // Inertia Animation for Synchronized Rollers
+        function startInertia(rollerInstance, initialVelocity) {
+            const friction = 0.95; 
+            let velocity = initialVelocity;
+            
+            const animate = () => {
+                if (dayRoller.isDragging || hourRoller.isDragging) {
+                    cancelAnimationFrame(rollerInstance.rafId);
+                    return;
+                }
+
+                velocity *= friction;
+
+                // Apply velocity to BOTH rollers
+                dayRoller.setPosition(velocity);
+                hourRoller.setPosition(velocity);
+
+                if (Math.abs(velocity) < 0.2) {
+                    dayRoller.snapToNearest();
+                    hourRoller.snapToNearest();
+                    return;
+                }
+
+                dayRoller.updateFocus(true);
+                rollerInstance.rafId = requestAnimationFrame(animate);
+            };
+
+            rollerInstance.rafId = requestAnimationFrame(animate);
+        }
+
+        function initApp() {
+            // 1. Initialize Rollers
+            dayRoller = new Roller('day-roulette-container', 'day-roller', ALL_DATES_AND_TIMES);
+            hourRoller = new Roller('hour-roulette-container', 'hour-roller', ALL_DATES_AND_TIMES);
+            
+            // 2. Set Initial Position to Today's Date
+            const todayId = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
+            const todayIndex = ALL_DATES_AND_TIMES.findIndex(item => item.id === todayId);
+            
+            if (todayIndex !== -1) {
+                // Scroll both rollers to the index corresponding to the current date
+                dayRoller.scrollToIndex(todayIndex);
+                hourRoller.scrollToIndex(todayIndex);
+            } else {
+                // Fallback to the first item if current date is outside range
+                dayRoller.scrollToIndex(0);
+                hourRoller.scrollToIndex(0);
+            }
+
+            // 3. Start Current Time Clock
+            setInterval(updateCurrentTime, 1000);
+            updateCurrentTime();
+        }
+
+        // --- Current Time Clock ---
+
+        function updateCurrentTime() {
+            const now = new Date();
+            const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            
+            const datePart = now.toLocaleDateString('es-ES', dateOptions);
+            const timePart = now.toLocaleTimeString('es-ES', timeOptions);
+            
+            document.getElementById('current-datetime').textContent = `${datePart} ${timePart}`;
+        }
+
+        // Start the application after the DOM is loaded
+        window.onload = initApp;
+    </script>
+</body>
+</html>
