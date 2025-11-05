@@ -126,13 +126,32 @@
         const ITEM_HEIGHT = 40; // Height of each item in pixels
         const ROLLER_HEIGHT = 200; // Visible height of the container
         
-        // Define the repeating cycle of call times (4-day cycle)
-        const CALL_TIME_CYCLE = ['09:00', '14:00', '07:00', '12:00'];
+		const nextDaylightSavings = [
+			{ date: new Date('November 1, 2025'), willTimeBeAligned: true },
+			{ date: new Date('March 8, 2026'), willTimeBeAligned: false },
+			{ date: new Date('November 1, 2026'), willTimeBeAligned: true },
+			{ date: new Date('March 14, 2027'), willTimeBeAligned: false },
+			{ date: new Date('November 7, 2027'), willTimeBeAligned: false }
+		];
+		
 
         // Current date reference for calculating the range 
         // NOTE: Using a fixed date for reliable local testing, otherwise use new Date()
-        const currentDate = new Date(); 
-        
+        const currentDate = new Date();
+		const nextEvent = nextDaylightSavings.find(event => event.date <= currentDate);
+
+		let timeAligned;
+
+		if (nextEvent) {
+			timeAligned = nextEvent.willTimeBeAligned;
+		} else {
+			timeAligned = true;
+			console.log('No future daylight savings event found in the list. Default is TimeAligned: true');
+		}
+		
+        const CALL_TIME_CYCLE = timeAligned ? ['10:00', '15:00', '08:00', '13:00'] : ['09:00', '14:00', '07:00', '12:00'];
+		console.log('CALL_TIME_CYCLE',CALL_TIME_CYCLE);
+		
         // Calculate start date: 1st day of the month one month ago
         const START_DATE = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1); 
 
@@ -157,7 +176,6 @@
                 
                 dates.push({
                     date: new Date(d),
-                    // Format: 24 oct
                     dayLabel: `${day} ${d.toLocaleDateString('es-ES', { month: 'short' })}`,
                     callTime: callTime,
                     id: `${year}-${month}-${day}`
