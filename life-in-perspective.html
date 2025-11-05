@@ -8,15 +8,23 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #121212;
+            background-color: #151525;
             color: #e0e0e0;
-            display: flex;
+        }
+		main {
+			display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-        }
+            padding: 1rem;
+			max-width: 80%;
+			margin: .1rem auto;
+		}
+		b {
+			color: #ab2d66;
+		}
         h1, h2 {
             text-align: center;
+			color: steelblue;
         }
         .info-panel {
             text-align: center;
@@ -79,42 +87,62 @@
             height: 15px;
             border-radius: 3px;
         }
+		
+		@media (max-width: 600px) {
+		.grid-container {
+			grid-template-columns: repeat(26, 1fr);
+			
+			/* Alternatively, you could use a fixed smaller number: 
+			   grid-template-columns: repeat(7, 1fr); 
+			*/
+
+			gap: 1px;
+			max-width: 100vw;
+			padding: 5px;
+		}
+		
+		.week-square {
+            width: 8px;
+            height: 8px;
+        }
+	}
     </style>
 </head>
 
 <body>
-    <h1>Vida en Perspectiva</h1>
-    <div class="info-panel">
-        <p>Este gráfico representa un tiempo de vida de 80 años, cada cuadrado simboliza una semana. Los cuadrados de azul claro muestran las semanas vividas.
-		<br><br>
-		Los cuadrados grises muestran las semanas que te faltan por vivir´, mientras que los cuadrados de azul oscuro, tiempo en semanas en las cuales pasarás durmiendo o haciendo actividades básicas como por ejemplo, higiene personal.
-		<br><br>
-		Estos cuadros de azul oscuro son sencillamente un tercio de las semanas que te quedan por vivir.</p><hr>
-        <p id="stats"></p>
-    </div>
-	
-	<div class="dob-input-container">
-        <label for="dob-input">Enter your Date of Birth:</label>
-        <input type="date" id="dob-input" value="1997-03-10">
-    </div>
+	<main>
+		<h1>Vida en Perspectiva</h1>
+		<div class="info-panel">
+			<p>Este gráfico representa un tiempo de vida de 80 años, cada cuadrado simboliza una semana. Los cuadrados de azul claro muestran las semanas vividas.
+			<br><br>
+			Los cuadrados grises muestran las semanas que te faltan por vivir´, mientras que los cuadrados de azul oscuro, tiempo en semanas en las cuales pasarás durmiendo o haciendo actividades básicas como por ejemplo, higiene personal.
+			<br><br>
+			Estos cuadros de azul oscuro son sencillamente un tercio de las semanas que te quedan por vivir.</p><hr>
+			<p id="stats"></p>
+		</div>
+		
+		<div class="dob-input-container">
+			<label for="dob-input">Enter your Date of Birth:</label>
+			<input type="date" id="dob-input" value="1997-03-10">
+		</div>
 
-    <div class="grid-container" id="lifeGrid"></div>
+		<div class="grid-container" id="lifeGrid"></div>
 
-    <div class="key">
-        <div class="key-item">
-            <div class="box week-lived"></div>
-            <span>Semanas Vividas</span>
-        </div>
-        <div class="key-item">
-            <div class="box week-slept"></div>
-            <span>Semanas que dormirás</span>
-        </div>
-        <div class="key-item">
-            <div class="box week-remaining"></div>
-            <span>Semanas restantes</span>
-        </div>
-    </div>
-
+		<div class="key">
+			<div class="key-item">
+				<div class="box week-lived"></div>
+				<span>Semanas Vividas</span>
+			</div>
+			<div class="key-item">
+				<div class="box week-slept"></div>
+				<span>Semanas que dormirás</span>
+			</div>
+			<div class="key-item">
+				<div class="box week-remaining"></div>
+				<span>Semanas restantes</span>
+			</div>
+		</div>
+	</main>
     <script>
 		const dobInput = document.getElementById('dob-input');
         const gridContainer = document.getElementById('lifeGrid');
@@ -162,8 +190,8 @@
             }
 
             const statsPanel = document.getElementById('stats');
-            const weeksRemaining = totalWeeks - weeksLived - timeSleeping;
-            statsPanel.innerHTML = `Has vivido **${weeksLived} semanas** de un total de **${totalWeeks} semanas**. Tienes **${weeksRemaining} semanas** restantes.`;
+            const weeksRemaining = totalWeeks - weeksLived;
+            statsPanel.innerHTML = `Has vivido <b>${weeksLived} semanas</b> de un total de <b>${totalWeeks} semanas</b>. Tienes <b>${weeksRemaining} semanas</b> restantes.`;
         }
 		
 		calculateAndRenderGrid(new Date(dobInput.value));
