@@ -1,0 +1,100 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #151525;
+    color: #e0e0e0;
+}
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    max-width: 80%;
+    margin: .1rem auto;
+}
+b {
+    color: #ab2d66;
+}
+h1, h2 {
+    text-align: center;
+    color: steelblue;
+}
+.info-panel {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.1em;
+    max-width: 800px;
+    line-height: 1.5;
+}
+.dob-input-container {
+    margin-bottom: 20px;
+}
+.dob-input-container label {
+    margin-right: 10px;
+}
+.dob-input-container input {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #e0e0e0;
+}
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(52, 1fr);
+    gap: 2px;
+    max-width: 90vw;
+    border: 2px solid #555;
+    padding: 10px;
+    background-color: #1e1e1e;
+}
+.week-square {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.5s ease;
+}
+.week-lived {
+    background-color: #3f72af; /* A blueish color for lived weeks */
+}
+.week-slept {
+    background-color: #0b2f51; /* A darker blue for slept weeks */
+}
+.week-remaining {
+    background-color: #444; /* Dark gray for future weeks */
+}
+.key {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 20px;
+}
+.key-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.key-item .box {
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+}
+
+@media (max-width: 600px) {
+    .grid-container {
+        grid-template-columns: repeat(26, 1fr);
+        
+        /* Alternatively, you could use a fixed smaller number: 
+            grid-template-columns: repeat(7, 1fr); 
+        */
+
+        gap: 1px;
+        max-width: 100vw;
+        padding: 5px;
+    }
+    
+    .week-square {
+        width: 8px;
+        height: 8px;
+    }
+}

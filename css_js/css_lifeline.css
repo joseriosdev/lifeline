@@ -1,0 +1,64 @@
+body { font-family: 'Inter', sans-serif; background-color: #0d1117; overflow-x: hidden; }
+
+.roller-container {
+    height: 200px; /* Visible height */
+    perspective: 1000px;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    position: relative;
+    background-color: #161b22;
+}
+
+.roller {
+    height: 100%;
+    width: 100%;
+    transition: transform 0.2s ease-out; /* Smooth snapping transition */
+    position: absolute;
+    will-change: transform;
+}
+
+.roller-item {
+    height: 40px; /* Fixed item height */
+    line-height: 40px;
+    text-align: center;
+    color: #8b949e;
+    font-size: 1rem;
+    opacity: 0.5;
+    transition: opacity 0.1s, color 0.1s, font-size 0.1s;
+}
+
+.focus-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 40px;
+    pointer-events: none;
+    /* Positioned in the center of 200px container: (200 / 2) - (40 / 2) = 80px from top */
+    top: 80px; 
+    /* Solid background to highlight the focused row, like iOS */
+    background-color: #2a3440; 
+    z-index: 10;
+    border-radius: 4px;
+}
+
+/* Styles for the centered/focused item */
+.roller-item.focused {
+    opacity: 1;
+    color: #4dc0b5; /* Teal/Cyan highlight color for contrast */
+    font-size: 1.6rem; 
+    font-weight: 800; /* Bold to stand out */
+}
+
+footer {
+    color: #8b949e;
+    border-radius: 6px;
+    background: rgba(1,1,1,.2);
+    text-align: center;
+    margin-top: 1rem;
+    padding: .5rem;
+}
+
+a {
+    font-weight: Bold;
+    color: #4dc0b5 !important;
+}
